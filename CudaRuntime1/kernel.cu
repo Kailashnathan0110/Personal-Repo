@@ -28,6 +28,36 @@ __global__ void demoKernal2(int* a) {
 
 }
 
+__global__ void demoAccessingDimensions(int count) {
+    //int lineCount = 0;
+    if (threadIdx.x == 0 /*&& blockIdx.x == 0 &&
+        threadIdx.y == 0 && blockIdx.y == 0 &&
+        threadIdx.z == 0 && blockIdx.z == 0*/)
+    {
+        printf("%d , %d , %d , %d , %d , %d \n", gridDim.x, gridDim.y, gridDim.z,
+            blockDim.x, blockDim.y, blockDim.z);
+        count = count + 1;
+        //lineCount++;
+        printf("%d\n", count);
+
+    }
+
+}
+#define matRow 5
+#define matCol 6
+
+
+__global__ void demo2D(unsigned* mat) {
+
+    unsigned id = threadIdx.x * blockDim. y + threadIdx.y;
+    mat[id] = id;
+
+
+
+}
+
+
+
 int main()
 {
     /* INTIAL PROG
@@ -71,7 +101,7 @@ int main()
     cudaDeviceSynchronize();
     printf("All done !\n");*/
 
-
+    /*
     int arr1[Numbers];
     auto startTime = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < Numbers; i++)
@@ -84,9 +114,9 @@ int main()
     auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(finishTime - startTime);
 
     std::cout << "Total Time taken " << timeTaken.count() << " Micro seconds" << "\n";
+    */
 
-
-
+    /*
 
     int a[Numbers], * da;
     int i;
@@ -101,7 +131,37 @@ int main()
     auto finishTimeCuda = std::chrono::high_resolution_clock::now();
     auto timeTakenCuda = std::chrono::duration_cast<std::chrono::microseconds>(finishTimeCuda - startTimeCuda);
     std::cout << "Total Time taken by Cuda " << timeTakenCuda.count() << " Micro seconds" << "\n";
+    
+    */
 
+    /*
+    dim3 grid(2, 3, 4);
+    dim3 block(5, 6, 7);
+    int lineCount = 0;
+    demoAccessingDimensions << <grid, block >> > (lineCount);
+    cudaDeviceSynchronize();
+    printf("%d", lineCount);
+    */
+
+
+    dim3 blockDim(matRow, matCol, 1);
+    unsigned* matrix, * hMatrix;
+
+    cudaMalloc(&matrix, matRow * matCol * sizeof(unsigned));
+    hMatrix = (unsigned*)malloc(matRow * matCol * sizeof(unsigned));
+
+    demo2D << <1, blockDim >> > (matrix);
+    cudaMemcpy(hMatrix, matrix, matRow * matCol * sizeof(unsigned), cudaMemcpyDeviceToHost);
+
+    for (unsigned i = 0; i < matRow; i++)
+    {
+        for (unsigned j = 0; j < matCol; j++)
+        {
+            printf("%2d", hMatrix[i * matCol + j]);
+
+        }
+        printf("\n");
+    }
 
     return 0;
 }
